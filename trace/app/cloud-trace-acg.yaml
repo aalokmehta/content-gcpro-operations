@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-trace-acg-a
+  labels:
+    app: cloud-trace-acg-app-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-trace-acg-app-a
+  template:
+    metadata:
+      name: cloud-trace-acg-a
+      labels:
+        app: cloud-trace-acg-app-a
+    spec:
+      containers:
+      - name: cloud-trace-acg-container
+        image: gcr.io/[PROJECT_ID]/acg-image:latest
+        imagePullPolicy: "Always"
+        command:
+        - python
+        args:
+        - app.py
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: KEYWORD
+          value: "Hello, I am service A"
+        - name: ENDPOINT
+          value: "http://cloud-trace-demo-b:8090"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-trace-acg-a
+spec:
+  selector:
+    app: cloud-trace-acg-app-a
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-trace-acg-b
+  labels:
+    app: cloud-trace-acg-app-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-trace-acg-app-b
+  template:
+    metadata:
+      name: cloud-trace-acg-b
+      labels:
+        app: cloud-trace-acg-app-b
+    spec:
+      containers:
+      - name: cloud-trace-acg-container
+        image: gcr.io/[PROJECT_ID]/acg-image:latest
+        imagePullPolicy: "Always"
+        command:
+        - python
+        args:
+        - app.py
+        ports:
+        - containerPort: 8090
+        env:
+        - name: PORT
+          value: "8090"
+        - name: KEYWORD
+          value: "And I am service B"
+        - name: ENDPOINT
+          value: "http://cloud-trace-demo-c:8090"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-trace-acg-b
+spec:
+  selector:
+    app: cloud-trace-acg-app-b
+  ports:
+  - protocol: TCP
+    port: 8090
+    targetPort: 8090
+  type: ClusterIP
+
+---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-trace-acg-c
+  labels:
+    app: cloud-trace-acg-app-c
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-trace-acg-app-c
+  template:
+    metadata:
+      name: cloud-trace-acg-c
+      labels:
+        app: cloud-trace-acg-app-c
+    spec:
+      containers:
+      - name: cloud-trace-acg-container
+        image: gcr.io/[PROJECT_ID]/acg-image:latest
+        imagePullPolicy: "Always"
+        command:
+        - python
+        args:
+        - app.py
+        ports:
+        - containerPort: 8090
+        env:
+        - name: PORT
+          value: "8090"
+        - name: KEYWORD
+          value: "Hello, I am service C"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-trace-acg-c
+spec:
+  selector:
+    app: cloud-trace-acg-app-c
+  ports:
+  - protocol: TCP
+    port: 8090
+    targetPort: 8090
+  type: ClusterIP
